@@ -84,6 +84,15 @@ log file a little easier to read.
 
 ## The daily backup shell script
 
+This script is on all the computers being backed up. It is designed to get the information
+about the locale programmatically, and it should not need modification. If you want to
+backup a directory other than `/home`, then you can invoke it locally with the name of the
+directory that you want to backup.
+
+```
+./dailybackup.sh --do-it /scratch
+```
+
 ```
      1	#!/bin/bash
      2
@@ -96,7 +105,7 @@ log file a little easier to read.
      9	fi
     10
     11	# User to receive the email.
-    12	export OWNER=gflanagin@richmond.edu
+    12	export OWNER=hpc@richmond.edu
     13
     14
     15	help_me=false
