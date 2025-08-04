@@ -258,7 +258,7 @@ These two options do not make sense in the UNIX/ZFS environment.
 
 `nice -n 7` Niceness runs from [0..19], where 0 is normal scheduling priority,
 and 19 is as nice as a program can be. In this case, -7 is about half the priority
-of the default. *NB: this is *CPU* niceness, and it avoids prevention
+of the default. *NB: this is *CPU* niceness, and running nice avoids the congestion
 of normal work.*
 
 `ionice -c 2 -n 7` The nice levels are the same, and `ionice` also has classes of service.
@@ -270,7 +270,7 @@ program is scheduled lower in priority.
 `$BACKUPARGS` In our case, `-av`, meaning preserve time stamp info, traverse the directories,
 and make a list of what files are transferred.
 
-`$dry_run` If we are really transferring the files, this variable is null, otherwise
+`$dry_run` If we are really transferring the files (*i.e.*, `--do-it`), this variable is null, otherwise
 its value is `--dry-run`, meaning the program just describes what it *would* do.
 
 `$EXCLUSIONS` References the exclusions file.
@@ -289,12 +289,14 @@ its value is `--dry-run`, meaning the program just describes what it *would* do.
 backup situation. It is important to understand how it works to use it effectively.
 Before `rsync` begins the transfer, it establishes contact with the remote computer
 (.. assuming that you are transferring between computers. `rsync` works just as well
-to copy or move files on a single host.) and builds a list of the files to be transferred.
+to copy or move files on a single host.), and builds a list of the files to be transferred.
 
 Its operation can be considerably sped along by excluding scrap files such as files in
 the browser cache. It is not so much that the files are large, but they are numerous
-and often short lived. The speed of `rsync`'s operation is related to the size of the lists
-as well as the size of the files. 
+and often short lived. The speed of `rsync`'s operation is related to *the size of the lists
+as well as the size of the files*. 
+
+The following list excludes some of the major file space hogs.
 
 ### rysnc-excludes.txt
 ```
@@ -306,12 +308,12 @@ as well as the size of the files.
 # Development tools
 .vscode*/
 .config/
-.conda/
+.conda/       # these files came from elsewhere
 .docker/
-.eclipse/
-.git/
+.eclipse/ 
+.git/         # presumably, the repos have a remote already.
 .local/lib/
-__pycache__/
+__pycache__/  # Compiled Python code of the parent directory.
 containers/
 *.iso
 
