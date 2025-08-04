@@ -21,7 +21,11 @@ the program silently fails (`-n`). Otherwise, it creates the named file with an 
 lock (`LOCK_EX`), and then proceeds to do whatever you request, in this case, we want to
 run the shell script, `/home/zeus/continuousbackup.sh`.
 
+The point is to prevent running this script twice.
+
 ## The continuous backup shell script
+
+An explanation of the more cryptic lines follows:
 
 ```bash
      1	#!/bin/bash
@@ -55,5 +59,165 @@ run the shell script, `/home/zeus/continuousbackup.sh`.
     29	    echo "$(date '+%F %T') -- Cycle complete. Restarting after pause." >> "$logfile"
     30	    sleep 300
     31	done
-    32
+```
+
+[3] This is the list of computers to cycle through.
+
+[6-8] Creates a logfile directory for the logs, and the directory is owned by Zeus.
+
+[10] This creates the continuous loop. `true` is always true.
+
+[11] Create a new logfile.
+
+[12] The inner loop. 
+
+[16] The line that does the work. This script connects to each host, and the connection
+information is in `~/.ssh/config`. The remote user is defined to be `root`.
+
+[25] There is a one minute pause between each host backup. This is primarily to make the 
+log file a little easier to read.
+
+[27] All the `echo` statements get written to the logfile. 
+
+[29-30] Wait five minutes to start again. 
+
+
+## The daily backup shell script
+
+```
+     1	#!/bin/bash
+     2
+     3	cd "$HOME"
+     4
+     5	if (return 0 2>/dev/null); then
+     6	    echo "ERROR: This script must not be sourced. Run it instead:"
+     7	    echo "  $0 [args]"
+     8	    return 1
+     9	fi
+    10
+    11	# User to receive the email.
+    12	export OWNER=gflanagin@richmond.edu
+    13
+    14
+    15	help_me=false
+    16	for arg in "$@"; do
+    17	    if [[ "$arg" == "-h" ]]; then
+    18	        help_me=true
+    19	        break
+    20	    fi
+    21	done
+    22
+    23	if "$help_me" ; then
+    24	    cat<<EOF
+    25	    NOTE: by default, this shell script only shows you what would happen,
+    26	        but does not do the backup. You must include --do-it to have
+    27	        the backup take place.
+    28	        $0 -h
+    29	            Show this message and exit
+    30	        $0 {dir}
+    31	            Defaults to "/home", and is the directory to backup.
+    32	        $0 --do-it {dir}
+    33	            Does the backup.
+    34	EOF
+    35	    exit 0
+    36	fi
+    37
+    38	do_it=false
+    39	for arg in "$@"; do
+    40	    if [[ "$arg" == "--do-it" ]]; then
+    41	        do_it=true
+    42	        break
+    43	    fi
+    44	done
+    45
+    46	if [ -z "$1" ]; then
+    47	    SOURCE="/home"
+    48	else
+    49	    SOURCE=${!#}
+    50	fi
+    51
+    52	# if it does not start with a /, then it must be
+    53	# an option or an invalid path.
+    54	if [[ ! "$SOURCE" =~ /* ]]; then
+    55	    SOURCE="/home"
+    56
+    57	    # Let's make sure it exists. Test without a trailing
+    58	    # slash in case tab-completion put one there.
+    59	elif [ ! -d "${SOURCE%/}" ]; then
+    60	    echo "$SOURCE does not exist."
+    61	fi
+    62	# Make sure it ends in a / so that rsync will copy the contents.
+    63	SOURCE="${SOURCE%/}/"
+    64
+    65	if ! $do_it; then
+    66	    echo "Dry run only. Use --do-it to execute."
+    67	    dry_run="--dry-run"
+    68	else
+    69	    echo "Executing backup ..."
+    70	    dry_run=""
+    71	fi
+    72
+    73
+    74	###
+    75	# To change the list of excluded files, put the cursor on the
+    76	# file name below, and press gf
+    77	###
+    78	export EXCLUSIONS=rsync-excludes.txt
+    79	if [ ! -f "$EXCLUSIONS" ]; then
+    80	    echo "Could not find exclusions file: $EXCLUSIONS"
+    81	    exit 1
+    82	else
+    83	    EXCLUSIONS="--exclude-from=$EXCLUSIONS"
+    84	fi
+    85
+    86
+    87	# -a : preserves times, owner ids, group ids
+    88	#  v : verbose .. show what is going on.
+    89	#  X : any extended attribute metadata
+    90	#  A : any ACLs
+    91
+    92	export BACKUPARGS="-av"
+    93
+    94	# The (short) name of the computer running this script.
+    95	export HOST=$(hostname -s 2>/dev/null)
+    96	export DESTDIR="/mnt/everything/backup-testing/$HOST"
+    97
+    98	# The destination user is not always "root". The destination
+    99	# might have an administrative user who is not named root.
+   100
+   101	export DESTINATION_HOST="root@141.166.186.1"
+   102
+   103	# Let's make each run clean.
+   104	export OUTPUT=dailybackup.out
+   105	export ERRORS=dailybackup.err
+   106	rm -f "$OUTPUT"
+   107	rm -f "$ERRORS"
+   108
+   109	# Let's make sure the storage is up and accessible.
+   110	ssh -o ConnectTimeout=3 "$DESTINATION_HOST" true
+   111	if [ $? -ne 0 ]; then
+   112		mail -s "Could not backup $HOST. $DESTINATION_HOST not reachable." "$OWNER" </dev/null
+   113		exit
+   114	fi
+   115
+   116
+   117	# Echo just for documentation.
+   118	echo "rsync $BACKUPARGS $dry_run $EXCLUSIONS $SOURCE $DESTINATION_HOST:$DESTDIR >$OUTPUT 2>$ERRORS" | tee $OUTPUT
+   119
+   120	echo "Backup started: $(date)" >> $OUTPUT
+   121	echo "Source: $SOURCE" >> $OUTPUT
+   122	echo "Destination: $DESTINATION_HOST:$DESTDIR" >> $OUTPUT
+   123	echo "Exclusions file: $EXCLUSIONS" >> $OUTPUT
+   124	echo "----------------------------------------" >> $OUTPUT
+   125
+   126	nice -n 7 ionice -c 2 -n 7 rsync $BACKUPARGS $dry_run $EXCLUSIONS "$SOURCE" "$DESTINATION_HOST:$DESTDIR" >>$OUTPUT 2>$ERRORS
+   127	RSYNC_EXIT=$?
+   128
+   129	if [ $RSYNC_EXIT -ne 0 ] || [ -s "$ERRORS" ]; then
+   130	    {
+   131	        echo "Rsync exit code: $RSYNC_EXIT"
+   132	        echo "=== STDERR ==="
+   133	        cat "$ERRORS"
+   134	    } | mail -s "Backup on $HOST had problems" "$OWNER"
+   135	fi
 ```
