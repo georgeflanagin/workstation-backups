@@ -237,7 +237,16 @@ Following the script, there are explanations of the lines that may require them.
 
 ## The excluded files.
 
-`rsync` is a flexible program. 
+`rsync` is a flexible program, and it is a dependable way to transfer files in a 
+backup situation. It is important to understand how it works to use it effectively.
+Before `rsync` begins the transfer, it establishes contact with the remote computer
+(.. assuming that you are transferring between computers. `rsync` works just as well
+to copy or move files on a single host.) and builds a list of the files to be transferred.
+
+Its operation can be considerably sped along by excluding scrap files such as files in
+the browser cache. It is not so much that the files are large, but they are numerous
+and often short lived. The speed of `rsync`'s operation is related to the size of the lists
+as well as the size of the files. 
 
 ### rysnc-excludes.txt
 ```
