@@ -1,7 +1,13 @@
-# Procedure for backingup the workstations in the Parish Lab
+# Procedure for backup of the workstations in the Parish Lab
 
-As with other administrative functions, these are assigned to be run by `zeus@jonimitchell` 
+As with other administrative functions, these are assigned to be run by `zeus@jonimitchell`. JoniMitchell is the unified home of administrative functions for the Parish Lab. 
 
+There are four parts of the system, and each is detailed in a section below:
+
+1. The cron job that does the scheduling.
+2. The shell script that orders the backups, and runs continuously.
+3. The shell script on the workstations that performs the backup.
+4. The list of files to backup/exclude, also present on each workstation.
 
 ## The crontab 
 
