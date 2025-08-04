@@ -262,15 +262,15 @@ and make a list of what files are transferred.
 `$dry_run` If we are really transferring the files, this variable is null, otherwise
 its value is `--dry-run`, meaning the program just describes what it *would* do.
 
-`$EXCLUSIONS` 
+`$EXCLUSIONS` References the exclusions file.
 
-`"$SOURCE"` 
+`"$SOURCE"` Where we are transferring files *from*.
 
-`"$DESTINATION_HOST:$DESTDIR"` 
+`"$DESTINATION_HOST:$DESTDIR"` Where we are transferring files *to*.
 
-`>>$OUTPUT`
+`>>$OUTPUT` In this case, `dailybackup.out`
 
-`2>$ERRORS`
+`2>$ERRORS` In this case, `dailybackup.err`
 
 ## The excluded files.
 
