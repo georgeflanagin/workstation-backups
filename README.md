@@ -27,6 +27,7 @@ The point is to prevent running this script twice.
 
 An explanation of the more cryptic lines follows:
 
+### continuousbackup.sh
 ```bash
      1	#!/bin/bash
      2
@@ -93,6 +94,9 @@ directory that you want to backup.
 ./dailybackup.sh --do-it /scratch
 ```
 
+Following the script, there are explanations of the lines that may require them.
+
+### dailybackup.sh
 ```
      1	#!/bin/bash
      2
@@ -229,4 +233,49 @@ directory that you want to backup.
    133	        cat "$ERRORS"
    134	    } | mail -s "Backup on $HOST had problems" "$OWNER"
    135	fi
+```
+
+## The excluded files.
+
+`rsync` is a flexible program. 
+
+### rysnc-excludes.txt
+```
+# Browser and application caches
+.cache/
+.mozilla/
+.config/google-chrome/
+
+# Development tools
+.vscode*/
+.config/
+.conda/
+.docker/
+.eclipse/
+.git/
+.local/lib/
+__pycache__/
+containers/
+*.iso
+
+# Desktop environments
+.gnome/
+.zoom/
+
+# Package managers and build tools
+.npm/
+.yarn/
+.gradle/
+.m2/
+.cargo/
+.rustup/
+
+# System and user directories
+.local/share/Trash/
+.thumbnails/
+snap/
+
+# Gaming and virtualization
+.steam/
+.wine/
 ```
