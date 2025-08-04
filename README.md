@@ -25,6 +25,11 @@ The point is to prevent running this script twice.
 
 ## The continuous backup shell script
 
+### A word about the method. 
+
+If there is nothing to backup, this script will run every 22 minutes: 1 minute
+per workstation * 17 workstations, plus a five minute "rest" each trip through the loop.
+
 An explanation of the more cryptic lines follows:
 
 ### continuousbackup.sh
