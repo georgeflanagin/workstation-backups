@@ -235,6 +235,43 @@ Following the script, there are explanations of the lines that may require them.
    135	fi
 ```
 
+[3] It is always a good idea to establish the `$PWD` of a running script. This is
+also where the list of exclusions is located.
+
+[46-50] The directory to be backed up is the last argument.
+
+[89-90] We backup to a UNIX computer running ZFS from Linux computers running XFS.
+These two options do not make sense in the UNIX/ZFS environment.
+
+[126] This is the command that executes the file transfer. Let's go through it.
+
+`nice -n 7` Niceness runs from [0..19], where 0 is normal scheduling priority,
+and 19 is as nice as a program can be. In this case, -7 is about half the priority
+of the default. *NB: this is *CPU* niceness, and it avoids prevention
+of normal work.*
+
+`ionice -c 2 -n 7` The nice levels are the same, and `ionice` also has classes of service.
+Class 2 is known as "best effort," which is the normal I/O priority. Within that class, this
+program is scheduled lower in priority.
+
+`rsync` The program we are running.
+
+`$BACKUPARGS` In our case, `-av`, meaning preserve time stamp info, traverse the directories,
+and make a list of what files are transferred.
+
+`$dry_run` If we are really transferring the files, this variable is null, otherwise
+its value is `--dry-run`, meaning the program just describes what it *would* do.
+
+`$EXCLUSIONS` 
+
+`"$SOURCE"` 
+
+`"$DESTINATION_HOST:$DESTDIR"` 
+
+`>>$OUTPUT`
+
+`2>$ERRORS`
+
 ## The excluded files.
 
 `rsync` is a flexible program, and it is a dependable way to transfer files in a 
