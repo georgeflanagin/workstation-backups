@@ -1,0 +1,37 @@
+# Browser and application caches
+.cache/
+.mozilla/
+.config/google-chrome/
+
+# Development tools
+.vscode*/
+.config/
+.conda/
+.docker/
+.eclipse/
+.git/
+.local/lib/
+__pycache__/
+containers/
+*.iso
+
+# Desktop environments
+.gnome/
+.zoom/
+
+# Package managers and build tools
+.npm/
+.yarn/
+.gradle/
+.m2/
+.cargo/
+.rustup/
+
+# System and user directories
+.local/share/Trash/
+.thumbnails/
+snap/
+
+# Gaming and virtualization
+.steam/
+.wine/
